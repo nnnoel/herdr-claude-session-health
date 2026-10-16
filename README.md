@@ -94,6 +94,25 @@ The sidebar layout belongs to your Herdr config, so the plugin only reports
 the value. The token expires automatically (TTL of 3 sampling intervals + 2 s)
 if the monitor stops.
 
+To color the verdict by state, use a styled token with `rules`. The first
+matching rule wins. This layout is verified with `herdr config check` on 0.9.5:
+
+```toml
+[ui.sidebar.agents]
+rows = [
+  ["state_icon", "machine", "workspace", "tab"],
+  ["agent", { token = "$memhealth", rules = [
+    { starts_with = "leak?", fg = "#f55", bold = true },
+    { starts_with = "over", fg = "#f55", bold = true },
+    { starts_with = "↗", fg = "#fc0", bold = true },
+    { starts_with = "high", fg = "#c678dd" },
+    { equals = "stale", fg = "#888", dim = true },
+    { equals = "learning", fg = "#5c5", dim = true },
+    { starts_with = "ok", fg = "#5c5" },
+  ] }],
+]
+```
+
 ## Using it
 
 | Action (Herdr command palette / `herdr plugin action invoke …`) | What it does |
@@ -135,8 +154,8 @@ with a warning, which is shown in the dashboard header, `diag` and the log.
 |---|---|---|
 | `sample_interval_sec` | 5 | Sampling interval (2–60) |
 | `warn_rss_mb` / `critical_rss_mb` | 2048 / 4096 | Elevated threshold / memory budget for one session tree |
-| `elevated_min_minutes` | 5 | Time continuously above a threshold before it counts |
-| `growth_window_minutes` / `leak_window_minutes` | 20 / 60 | Sustained-growth and leak windows |
+| `elevated_min_minutes` | 5 | Time continuously above a threshold before it counts; must be below `raw_retention_minutes` |
+| `growth_window_minutes` / `leak_window_minutes` | 20 / 60 | Sustained-growth and leak windows (growth window ≥ 10; leak window must be longer) |
 | `min_growth_mb` / `min_growth_percent` | 150 / 15 | Both must be exceeded over a window |
 | `min_up_fraction` | 0.6 | Share of minute-to-minute steps that must rise |
 | `idle_after_minutes` / `idle_cpu_percent` | 5 / 3 | Idle detection (agent status first, CPU as fallback) |
@@ -226,6 +245,10 @@ steadily over 20 min (84% of minutes up) and is still rising at 21 MB/min"*.
 - **Herdr's view of the pane limits attribution.** If Herdr doesn't report the
   foreground processes, attribution falls back to name matching and is
   marked *probable*.
+- **A growing child looks like session growth.** The analysed series is Claude
+  plus all its descendants, so a dev server, test runner or MCP server that
+  Claude started can trigger the warning. Alerts and the detail view therefore
+  show the Claude vs. children split and name the largest child.
 
 ## Alerts
 
@@ -240,6 +263,10 @@ reason. A condition notifies **once per episode**.
 All alerts, including suppressed ones with their reason, appear in the
 dashboard and in `diag`. If sampling fails three times in a row, the monitor
 raises *"sampling is failing"*, and session values are shown as stale.
+
+A pane that briefly disappears from Herdr's agent list keeps its history,
+verdict and alert cooldowns for 60 s, so a listing glitch doesn't produce
+duplicate notifications. Closing a Claude pane never raises a "stale" alert.
 
 ## Recovery (manual only)
 
@@ -339,8 +366,9 @@ rm -rf "$(herdr plugin config-dir claude-session-health)"                       
 ```
 
 To clear only history, stop the monitor and delete `history.json` in the state
-dir. A running monitor also exits on its own within 30 s of the plugin being
-disabled or uninstalled.
+dir. A running monitor also exits on its own about a minute after the plugin
+is disabled or uninstalled. It waits for three consecutive checks, 30 s
+apart, so a brief empty plugin list during a Herdr restart doesn't stop it.
 
 ## Privacy and retention
 
