@@ -1,0 +1,43 @@
+id = "claude-session-health"
+name = "Claude Code Session Health"
+version = "0.1.0"
+min_herdr_version = "0.9.5"
+description = "Watch Claude Code sessions for sustained memory growth, possible leaks and system memory pressure."
+platforms = ["macos"]
+
+[[build]]
+command = ["go", "build", "-trimpath", "-o", "bin/claude-session-health", "./cmd/claude-session-health"]
+
+[[startup]]
+command = ["bin/claude-session-health", "start"]
+
+[[actions]]
+id = "open"
+title = "Open Claude session health"
+command = ["bin/claude-session-health", "open"]
+
+[[actions]]
+id = "start"
+title = "Start Claude session health monitor"
+command = ["bin/claude-session-health", "start"]
+
+[[actions]]
+id = "stop"
+title = "Stop Claude session health monitor"
+command = ["bin/claude-session-health", "stop"]
+
+[[actions]]
+id = "restart"
+title = "Restart Claude session health monitor (reload config)"
+command = ["bin/claude-session-health", "restart"]
+
+[[actions]]
+id = "diagnostics"
+title = "Copy Claude session health diagnostics"
+command = ["bin/claude-session-health", "diag", "--copy"]
+
+[[panes]]
+id = "dashboard"
+title = "Claude Session Health"
+placement = "split"
+command = ["bin/claude-session-health", "ui"]
