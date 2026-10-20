@@ -394,3 +394,7 @@ apart, so a brief empty plugin list during a Herdr restart doesn't stop it.
   only when you ask.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
