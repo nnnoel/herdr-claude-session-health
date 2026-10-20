@@ -107,7 +107,7 @@ rows = [
     { starts_with = "↗", fg = "#fc0", bold = true },
     { starts_with = "high", fg = "#c678dd" },
     { equals = "stale", fg = "#888", dim = true },
-    { equals = "learning", fg = "#5c5", dim = true },
+    { starts_with = "learning", fg = "#5c5", dim = true },
     { starts_with = "ok", fg = "#5c5" },
   ] }],
 ]
@@ -164,6 +164,7 @@ with a warning, which is shown in the dashboard header, `diag` and the log.
 | `retention_hours` / `raw_retention_minutes` | 24 / 60 | History kept (minute buckets / raw samples) |
 | `verbosity` | `normal` | `quiet`: leak, budget, critical pressure and monitor failure only. `normal`: adds growth, warn pressure, swap, stale and recoveries. `verbose`: adds elevated |
 | `notifications` / `sidebar_token` | true / true | Turn Herdr notifications / the sidebar token off |
+| `sidebar_show_rss` | false | Add the session's current size to the sidebar token: `ok 1.8G`, `learning 915M`, `↗ +420M/20m · 2.1G` (`high`/`over` already show it, `stale` never does) |
 | `system_pressure_warnings` | true | System pressure and swap alerts |
 | `pressure_sustain_minutes` | 2 | How long pressure must persist |
 | `swap_growth_mb` / `swap_growth_window_minutes` | 1024 / 10 | Rapid swap growth threshold |

@@ -250,6 +250,33 @@ func TestSessionsAttributedIndependently(t *testing.T) {
 	}
 }
 
+// sidebar_show_rss appends the current session size to the verdict.
+func TestSidebarShowRSS(t *testing.T) {
+	w := newWorld()
+	w.addSession("w1:p1", "term_a", 10, 11, func(m float64) float64 { return 800 + 15*m })
+	w.addSession("w1:p2", "term_b", 20, 21, flat(800),
+		&proc{pid: 22, ppid: 21, pgid: 21, rssMB: flat(50), name: "node"})
+	cfg := config.Default()
+	cfg.SidebarShowRSS = true
+	m, _ := newMonitor(t, w, cfg, "")
+
+	tickFor(t, m, w, time.Minute)
+	if tok := w.tokens["w1:p2"]; *tok[len(tok)-1] != "learning 850M" {
+		t.Errorf("new session token = %q, want %q", *tok[len(tok)-1], "learning 850M")
+	}
+
+	tickFor(t, m, w, 29*time.Minute)
+	if tok := w.tokens["w1:p2"]; *tok[len(tok)-1] != "ok 850M" {
+		t.Errorf("stable session token = %q, want %q", *tok[len(tok)-1], "ok 850M")
+	}
+	a := sessionView(t, m, "w1:p1")
+	want := " · " + short(float64(a.RSSKB))
+	if tok := w.tokens["w1:p1"]; !strings.HasSuffix(*tok[len(tok)-1], want) ||
+		(!strings.HasPrefix(*tok[len(tok)-1], "↗") && !strings.HasPrefix(*tok[len(tok)-1], "leak?")) {
+		t.Errorf("growing session token = %q, want a growth verdict ending in %q", *tok[len(tok)-1], want)
+	}
+}
+
 // 6 (end to end). A restart in the same pane resets the baseline and
 // resolves alerts about the old process.
 func TestRestartInSamePaneResetsBaseline(t *testing.T) {

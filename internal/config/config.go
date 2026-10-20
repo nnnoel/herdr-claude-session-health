@@ -60,6 +60,7 @@ type Config struct {
 	Verbosity               Verbosity `json:"verbosity"`
 	Notifications           bool      `json:"notifications"`
 	SidebarToken            bool      `json:"sidebar_token"`
+	SidebarShowRSS          bool      `json:"sidebar_show_rss"`
 	SystemPressureWarnings  bool      `json:"system_pressure_warnings"`
 	PressureSustainMinutes  float64   `json:"pressure_sustain_minutes"`
 	SwapGrowthMB            int       `json:"swap_growth_mb"`

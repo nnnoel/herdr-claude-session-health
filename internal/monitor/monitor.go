@@ -644,11 +644,29 @@ func (m *Monitor) refreshResume(s *session, now time.Time) {
 }
 
 // tokenText is the compact sidebar summary. It complements CPU/memory
-// usage plugins by showing the health verdict rather than raw usage.
+// usage plugins by showing the health verdict rather than raw usage;
+// sidebar_show_rss adds the current session size to verdicts that lack it.
 func (m *Monitor) tokenText(s *session) string {
 	if !s.sampled {
 		return "stale"
 	}
+	text := m.verdictText(s)
+	a := s.assessment
+	if !m.cfg.SidebarShowRSS || a.CurrentKB == 0 {
+		return text
+	}
+	size := short(float64(a.CurrentKB))
+	switch s.tracker.State {
+	case analysis.Elevated:
+		return text // already "high 2.3G" / "over 4.3G"
+	case analysis.SuspectedLeak, analysis.SustainedGrowth:
+		return text + " · " + size
+	default:
+		return text + " " + size
+	}
+}
+
+func (m *Monitor) verdictText(s *session) string {
 	a := s.assessment
 	switch s.tracker.State {
 	case analysis.SuspectedLeak:

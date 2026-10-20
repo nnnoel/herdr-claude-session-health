@@ -17,6 +17,7 @@
   "verbosity": "normal",
   "notifications": true,
   "sidebar_token": true,
+  "sidebar_show_rss": false,
   "system_pressure_warnings": true,
   "pressure_sustain_minutes": 2,
   "swap_growth_mb": 1024,
